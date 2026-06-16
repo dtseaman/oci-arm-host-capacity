@@ -11,14 +11,20 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: .
 
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-          extensions: curl, openssl, json
+          php-version: '8.2'
+          extensions: curl, openssl
+
+      - name: Download Clean Script Structure
+        run: |
+          mkdir -p src
+          curl -sS https://raw.githubusercontent.com/hitrov/oci-arm-host-capacity/main/index.php > index.php
+          curl -sS https://raw.githubusercontent.com/hitrov/oci-arm-host-capacity/main/src/OciConfig.php > src/OciConfig.php
+          curl -sS https://raw.githubusercontent.com/hitrov/oci-arm-host-capacity/main/src/OciApi.php > src/OciApi.php
+          curl -sS https://raw.githubusercontent.com/hitrov/oci-arm-host-capacity/main/composer.json > composer.json
 
       - name: Install Project Dependencies
         run: composer install --no-dev
