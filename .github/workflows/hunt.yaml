@@ -29,20 +29,24 @@ jobs:
       - name: Install Project Dependencies
         run: composer install --no-dev
 
-      - name: Create Temporary Key File
+      - name: Create Temporary API Private Key File
         run: |
           echo "${{ secrets.OCI_PRIVATE_KEY }}" > oracle_api_key.pem
           chmod 600 oracle_api_key.pem
 
+      - name: Generate Local .env Configuration File
+        run: |
+          cat <<EOF > .env
+          OCI_REGION="${{ secrets.OCI_REGION }}"
+          OCI_USER_ID="${{ secrets.OCI_USER_ID }}"
+          OCI_TENANCY_ID="${{ secrets.OCI_TENANCY_ID }}"
+          OCI_KEY_FINGERPRINT="${{ secrets.OCI_KEY_FINGERPRINT }}"
+          OCI_SUBNET_ID="${{ secrets.OCI_SUBNET_ID }}"
+          OCI_SSH_PUBLIC_KEY="${{ secrets.OCI_SSH_PUBLIC_KEY }}"
+          OCI_OCPUS="${{ vars.OCI_OCPUS }}"
+          OCI_MEMORY_IN_GBS="${{ vars.OCI_MEMORY_IN_GBS }}"
+          OCI_PRIVATE_KEY_FILENAME="oracle_api_key.pem"
+          EOF
+
       - name: Run OCI Instance Hunter
-        env:
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
-          OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
-          OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
-          OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
-          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-          OCI_OCPUS: ${{ vars.OCI_OCPUS }}
-          OCI_MEMORY_IN_GBS: ${{ vars.OCI_MEMORY_IN_GBS }}
-          OCI_PRIVATE_KEY_FILE_PATH: oracle_api_key.pem
         run: php index.php
