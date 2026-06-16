@@ -2,8 +2,8 @@ name: Oracle Ampere Hunter
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # Automatically wakes up and hunts every 15 minutes 24/7
-  workflow_dispatch:       # Unlocks the manual "Run workflow" button for you
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 jobs:
   run-hunter:
@@ -11,15 +11,22 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: .
 
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: curl, openssl
+          php-version: '8.3'
+          extensions: curl, openssl, json
 
       - name: Install Project Dependencies
         run: composer install --no-dev
+
+      - name: Create Temporary Key File
+        run: |
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" > oracle_api_key.pem
+          chmod 600 oracle_api_key.pem
 
       - name: Run OCI Instance Hunter
         env:
@@ -28,8 +35,8 @@ jobs:
           OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
           OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
           OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
-          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
           OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
           OCI_OCPUS: ${{ vars.OCI_OCPUS }}
           OCI_MEMORY_IN_GBS: ${{ vars.OCI_MEMORY_IN_GBS }}
+          OCI_PRIVATE_KEY_FILE_PATH: oracle_api_key.pem
         run: php index.php
