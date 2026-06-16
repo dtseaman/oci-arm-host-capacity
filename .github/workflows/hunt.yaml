@@ -1,0 +1,35 @@
+name: Oracle Ampere Hunter
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Automatically wakes up and hunts every 15 minutes 24/7
+  workflow_dispatch:       # Unlocks the manual "Run workflow" button for you
+
+jobs:
+  run-hunter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, openssl
+
+      - name: Install Project Dependencies
+        run: composer install --no-dev
+
+      - name: Run OCI Instance Hunter
+        env:
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
+          OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
+          OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
+          OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+          OCI_OCPUS: ${{ vars.OCI_OCPUS }}
+          OCI_MEMORY_IN_GBS: ${{ vars.OCI_MEMORY_IN_GBS }}
+        run: php index.php
